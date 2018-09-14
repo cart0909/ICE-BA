@@ -66,6 +66,7 @@ public:
             //                f           f+1
             // --x--x--x--x--x--x--x--x--x- imu
             //   f                       b
+            // --o--o--o--o--o^-?---------- collect data in frame f
 
             // if ts(imu(b)) < ts(img(f)), wait imu data
             if(imu_buf.back()->header.stamp.toSec() < img_ts) {
