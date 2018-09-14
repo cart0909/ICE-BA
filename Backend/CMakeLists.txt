@@ -31,7 +31,7 @@ if (APPLE)
   set(CMAKE_MACOSX_RPATH 0)
 endif()
 
-project(Solver)
+project(ice_ba_backend)
 
 # Configure cxx flags
 if(CYGWIN)
@@ -64,7 +64,7 @@ set(CMAKE_BUILD_TYPE Release)
 
 # Thirdparty dependencies
 # If CFG_VIEW is turned on, need to install glut (freeglut3-dev) and glew (libglew-dev)
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/../cmake")
 
 find_package(CVD)
 find_package(Boost COMPONENTS thread system filesystem REQUIRED)
@@ -79,6 +79,15 @@ if (CVD_FOUND)
   find_package(X11 REQUIRED)
  endif()
 endif()
+
+# add ros
+find_package(catkin REQUIRED COMPONENTS
+roscpp
+roslib
+systrace
+cmake_modules
+)
+include_directories(${catkin_INCLUDE_DIRS})
 
 # Explicitly specify all header and source files
 # =========================
@@ -216,6 +225,14 @@ set(IBA_INCLUDE_DIRS
  Map
  Utility
 )
+
+catkin_package(
+DEPENDS Boost Eigen Glog
+CATKIN_DEPENDS systrace
+INCLUDE_DIRS ${IBA_INCLUDE_DIRS}
+LIBRARIES IBA
+)
+
 set(GLOBAL_IBA_INCLUDE_DIRS
  ${PROJECT_SOURCE_DIR}/IBA
  ${PROJECT_SOURCE_DIR}/BundleAdjustment
@@ -263,6 +280,7 @@ target_link_libraries(IBA
  ${GLOG_LIBRARIES}
  ${X11_LIBRARIES}
  pthread
+ ${catkin_LIBRARIES}
 )
 
 # =========================
@@ -317,5 +335,6 @@ target_link_libraries(IBAVis
  ${X11_LIBRARIES}
  Xrandr
  pthread
+ ${catkin_LIBRARIES}
 )
 endif(CVD_FOUND)

@@ -1,0 +1,10 @@
+<launch>
+    <arg name="config_path" default = "$(find ice_ba_player)/../config/euroc/euroc_config.yaml" />
+    <arg name="rviz_config_path" default = "-d $(find ice_ba_player)/../config/rviz_config.rviz" />
+
+    <node name="ice_ba_player" pkg="ice_ba_player" type="ice_ba_player" output="screen">
+        <param name="config_file" type="string" value="$(arg config_path)" />
+    </node>
+
+    <node name="rvizvisualisation" pkg="rviz" type="rviz" output="log" args="$(arg rviz_config_path)" />
+</launch>
