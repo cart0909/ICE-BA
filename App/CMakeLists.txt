@@ -89,6 +89,7 @@ src
 add_executable(ice_ba_player
 ice_ba_player_node.cpp
 src/System.cpp
+src/Frame.cpp
 )
 
 target_link_libraries(ice_ba_player
