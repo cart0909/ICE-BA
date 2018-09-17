@@ -60,7 +60,7 @@ if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 5.0)
 endif()
 
 # Debug / Release / RelWithDebInfo
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Debug)
 
 # add ros
 find_package(catkin REQUIRED COMPONENTS
@@ -90,6 +90,9 @@ add_executable(ice_ba_player
 ice_ba_player_node.cpp
 src/System.cpp
 src/Frame.cpp
+src/FeatureTracking.cpp
+src/Config.cpp
+src/LocalBA.cpp
 )
 
 target_link_libraries(ice_ba_player

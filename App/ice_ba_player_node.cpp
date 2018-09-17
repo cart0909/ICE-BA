@@ -2,6 +2,7 @@
 #include "basic_datatype.h"
 #include "ros_utility.h"
 #include "tracer.h"
+#include "utility.h"
 #include <condition_variable>
 #include <cv_bridge/cv_bridge.h>
 #include <message_filters/subscriber.h>
@@ -20,10 +21,7 @@ class Node {
 public:
     using Measurements = vector<pair<pair<ImageConstPtr, ImageConstPtr>, vector<ImuConstPtr>>>;
 
-    Node()
-    {
-        t_system = std::thread(&Node::SystemThread, this);
-    }
+    Node() {}
     ~Node() {}
 
     void ImageCallback(const sensor_msgs::ImageConstPtr& img_msg,
@@ -32,7 +30,6 @@ public:
         ScopedTrace st("image_c");
         unique_lock<mutex> lock(m_buf);
         img_buf.emplace(img_msg, img_r_msg);
-        //        cv_bridge::toCvShare(img_msg, "mono8")->image;
         cv_system.notify_one();
     }
 
@@ -54,6 +51,9 @@ public:
         fs["image_topic"] >> img_topic;
         fs["image_r_topic"] >> img_r_topic;
         fs.release();
+
+        mSystem.ReadConfigYaml(config_file);
+        t_system = std::thread(&Node::SystemThread, this);
     }
 
     Measurements GetMeasurements()
@@ -91,7 +91,7 @@ public:
                 IMUs.emplace_back(imu_buf.front());
                 imu_buf.pop();
             }
-            IMUs.emplace_back(imu_buf.front()); // ??
+//            IMUs.emplace_back(imu_buf.front()); // ??
             measurements.emplace_back(img_msg, IMUs);
         }
 
@@ -107,8 +107,33 @@ public:
                 return (measurements = GetMeasurements()).size() != 0;
             });
             lock.unlock();
-            ScopedTrace st("system");
-            usleep(1000);
+
+            for(auto& meas : measurements) {
+                auto& img_msg = meas.first.first;
+                auto& img_msg_right = meas.first.second;
+                double timestamp = img_msg->header.stamp.toSec();
+                cv::Mat img_left, img_right;
+                img_left = cv_bridge::toCvShare(img_msg, "mono8")->image;
+                img_right = cv_bridge::toCvShare(img_msg_right, "mono8")->image;
+
+                auto& v_imu_msg = meas.second;
+                std::vector<XP::ImuData> imu_data;
+                for(auto& imu_msg : v_imu_msg) {
+                    XP::ImuData temp_imu;
+                    temp_imu.accel(0) = imu_msg->angular_velocity.x;
+                    temp_imu.accel(1) = imu_msg->angular_velocity.y;
+                    temp_imu.accel(2) = imu_msg->angular_velocity.z;
+
+                    temp_imu.ang_v(0) = imu_msg->angular_velocity.x;
+                    temp_imu.ang_v(1) = imu_msg->angular_velocity.y;
+                    temp_imu.ang_v(2) = imu_msg->angular_velocity.z;
+
+                    temp_imu.time_stamp = imu_msg->header.stamp.toSec();
+                    imu_data.emplace_back(temp_imu);
+                }
+
+                mSystem.TrackStereoVIO(img_left, img_right, timestamp, imu_data);
+            }
         }
     }
 
@@ -120,6 +145,7 @@ public:
     queue<ImuConstPtr> imu_buf;
     queue<pair<ImageConstPtr, ImageConstPtr>> img_buf;
 
+    System mSystem;
     std::condition_variable cv_system;
     std::thread t_system;
 };
@@ -143,6 +169,8 @@ int main(int argc, char** argv)
 
     ros::Subscriber sub_imu = nh.subscribe(node.imu_topic, 2000, &Node::ImuCallback, &node,
         ros::TransportHints().tcpNoDelay());
+
+    ROS_INFO_STREAM("ICE-BA Node is ready.");
 
     ros::spin();
     return 0;
