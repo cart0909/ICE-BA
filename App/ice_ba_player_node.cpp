@@ -126,9 +126,9 @@ public:
                 std::vector<XP::ImuData> imu_data;
                 for(auto& imu_msg : v_imu_msg) {
                     XP::ImuData temp_imu;
-                    temp_imu.accel(0) = imu_msg->angular_velocity.x;
-                    temp_imu.accel(1) = imu_msg->angular_velocity.y;
-                    temp_imu.accel(2) = imu_msg->angular_velocity.z;
+                    temp_imu.accel(0) = imu_msg->linear_acceleration.x;
+                    temp_imu.accel(1) = imu_msg->linear_acceleration.y;
+                    temp_imu.accel(2) = imu_msg->linear_acceleration.z;
 
                     temp_imu.ang_v(0) = imu_msg->angular_velocity.x;
                     temp_imu.ang_v(1) = imu_msg->angular_velocity.y;
