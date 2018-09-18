@@ -112,6 +112,12 @@ public:
                 auto& img_msg = meas.first.first;
                 auto& img_msg_right = meas.first.second;
                 double timestamp = img_msg->header.stamp.toSec();
+
+                if(mbImageFirstEnqueue) {
+                    mdImageFirstEnqueueTimeStamp = timestamp;
+                    mbImageFirstEnqueue = false;
+                }
+
                 cv::Mat img_left, img_right;
                 img_left = cv_bridge::toCvShare(img_msg, "mono8")->image;
                 img_right = cv_bridge::toCvShare(img_msg_right, "mono8")->image;
@@ -128,11 +134,11 @@ public:
                     temp_imu.ang_v(1) = imu_msg->angular_velocity.y;
                     temp_imu.ang_v(2) = imu_msg->angular_velocity.z;
 
-                    temp_imu.time_stamp = imu_msg->header.stamp.toSec();
+                    temp_imu.time_stamp = imu_msg->header.stamp.toSec() - mdImageFirstEnqueueTimeStamp;
                     imu_data.emplace_back(temp_imu);
                 }
 
-                mSystem.TrackStereoVIO(img_left, img_right, timestamp, imu_data);
+                mSystem.TrackStereoVIO(img_left, img_right, timestamp - mdImageFirstEnqueueTimeStamp, imu_data);
             }
         }
     }
@@ -148,6 +154,9 @@ public:
     System mSystem;
     std::condition_variable cv_system;
     std::thread t_system;
+
+    bool mbImageFirstEnqueue = true;
+    double mdImageFirstEnqueueTimeStamp;
 };
 
 int main(int argc, char** argv)

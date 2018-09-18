@@ -60,7 +60,7 @@ if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 5.0)
 endif()
 
 # Debug / Release / RelWithDebInfo
-set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Release)
 
 # add ros
 find_package(catkin REQUIRED COMPONENTS

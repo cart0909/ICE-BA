@@ -2,7 +2,7 @@
     <arg name="config_path" default = "$(find ice_ba_player)/../config/euroc/euroc_config.yaml" />
     <arg name="rviz_config_path" default = "-d $(find ice_ba_player)/../config/rviz_config.rviz" />
 
-    <node name="ice_ba_player" pkg="ice_ba_player" type="ice_ba_player" output="screen">
+    <node name="ice_ba_player" pkg="ice_ba_player" type="ice_ba_player" output="screen" launch-prefix="xterm -e gdb -ex run --args ">
         <param name="config_file" type="string" value="$(arg config_path)" />
     </node>
 

@@ -64,7 +64,7 @@ bool create_iba_frame(const std::vector<cv::KeyPoint>& kps_l,
       need_new_kf = false;
     if (!need_new_kf) KF.iFrm = -1;
     else
-      ROS_INFO_STREAM("new keyframe " << KF.iFrm);
+      ROS_INFO_STREAM("new keyframe " << CF.iFrm);
 
     if (!need_new_kf) {
       KF.iFrm = -1;
@@ -95,7 +95,7 @@ bool create_iba_frame(const std::vector<cv::KeyPoint>& kps_l,
           mp.zs.push_back(mp_mea);
           kp_it_r++;
         } else {
-          ROS_WARN_STREAM("add new feature point " << kp_it_l->class_id << " only found in left image");
+//          ROS_WARN_STREAM("add new feature point " << kp_it_l->class_id << " only found in left image");
         }
         KF.Xs.push_back(mp);
       }
@@ -142,7 +142,7 @@ void LocalBA::Run() {
     }
 }
 
-void LocalBA::PushCurrentFrame(const SPtr<Frame>& curr_frame, double timestamp,
+void LocalBA::PushCurrentFrame(const SPtr<Frame>& curr_frame, float timestamp,
                       const std::vector<XP::ImuData>& imu_meas) {
     std::vector<cv::KeyPoint> kps_l = curr_frame->mvKeys, kps_r = curr_frame->mvKeysRight;
     IBA::CurrentFrame CF;

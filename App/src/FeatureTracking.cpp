@@ -1,4 +1,5 @@
 #include "FeatureTracking.h"
+#include <ros/ros.h>
 #include <xp_quaternion.h>
 #include <opencv2/core/eigen.hpp>
 
@@ -61,7 +62,7 @@ void FeatureTracking::OpticalFlowAndDetect(const cv::Mat& img_smooth, const SPtr
 void FeatureTracking::OpticalFlowAndDetectWithIMU(const cv::Mat& img_smooth,
                                                   const std::vector<XP::ImuData>& imu_meas,
                                                   const SPtr<Frame>& curr_frame) {
-    assert(imu_meas.size() > 1);
+    ROS_ASSERT(imu_meas.size() > 1);
     const int request_feat_num = g_max_num_per_grid * g_grid_row_num * g_grid_col_num;
     mpFeatTrackDetector->build_img_pyramids(img_smooth, XP::FeatureTrackDetector::BUILD_TO_CURR);
 

@@ -28,7 +28,7 @@ public:
 
     void ReadConfigYaml(const std::string& filename);
     void TrackStereoVIO(const cv::Mat& img_left, const cv::Mat& img_right,
-        double timestamp, const std::vector<XP::ImuData>& imu_data);
+        float timestamp, const std::vector<XP::ImuData>& imu_data);
 
 private:
     SystemState mState = SYSTEM_INIT;

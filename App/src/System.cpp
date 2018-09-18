@@ -60,7 +60,7 @@ void System::ReadConfigYaml(const std::string& filename)
     Tdc0 = Eigen::Matrix4f::Identity();
     Tdb = Tdc0 * Tbc0.inverse();
     Tdc1 = Tdb * Tbc1;
-    Tdi = Tdb * Tdi;
+    Tdi = Tdb * Tbi;
     mpDuoCalibParam->Camera.D_T_C_lr[0] = Tdc0;
     mpDuoCalibParam->Camera.D_T_C_lr[1] = Tdc1;
 
@@ -102,7 +102,7 @@ void System::ReadConfigYaml(const std::string& filename)
 }
 
 void System::TrackStereoVIO(const cv::Mat& img_left, const cv::Mat& img_right,
-    double timestamp, const std::vector<XP::ImuData>& imu_data)
+    float timestamp, const std::vector<XP::ImuData>& imu_data)
 {
     SPtr<Frame> curr_frame = std::make_shared<Frame>();
     cv::Mat img_smooth, right_img_smooth;
@@ -113,7 +113,7 @@ void System::TrackStereoVIO(const cv::Mat& img_left, const cv::Mat& img_right,
         mpFeatureTracking->Detect(img_smooth, curr_frame);
         mState = SYSTEM_TRACK;
     }
-    else if(mState == SYSTEM_TRACK){
+    else if(mState == SYSTEM_TRACK) {
         if(imu_data.size() > 1) {
             mpFeatureTracking->OpticalFlowAndDetectWithIMU(
                         img_smooth,
@@ -132,4 +132,14 @@ void System::TrackStereoVIO(const cv::Mat& img_left, const cv::Mat& img_right,
 
     mpFeatureTracking->StereoMatching(right_img_smooth, img_smooth, curr_frame);
     mpLocalBA->PushCurrentFrame(curr_frame, timestamp, imu_data);
+
+    cv::Mat result;
+    cv::cvtColor(img_right, result, CV_GRAY2BGR);
+
+    for(auto& it : curr_frame->mvKeysRight) {
+        cv::circle(result, it.pt,5, cv::Scalar(0,255,0),-1);
+    }
+
+    cv::imshow("result", result);
+    cv::waitKey(1);
 }

@@ -13,7 +13,7 @@ public:
     LocalBA(const SPtr<XP::DuoCalibParam>& pDuoCalibParam);
     ~LocalBA();
 
-    void PushCurrentFrame(const SPtr<Frame>& curr_frame, double timestamp,
+    void PushCurrentFrame(const SPtr<Frame>& curr_frame, float timestamp,
                           const std::vector<XP::ImuData>& imu_meas);
 
 private:
