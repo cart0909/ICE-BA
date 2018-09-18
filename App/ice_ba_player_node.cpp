@@ -3,6 +3,7 @@
 #include "ros_utility.h"
 #include "tracer.h"
 #include "utility.h"
+#include "Viewer.h"
 #include <condition_variable>
 #include <cv_bridge/cv_bridge.h>
 #include <message_filters/subscriber.h>
@@ -91,7 +92,7 @@ public:
                 IMUs.emplace_back(imu_buf.front());
                 imu_buf.pop();
             }
-//            IMUs.emplace_back(imu_buf.front()); // ??
+            // IMUs.emplace_back(imu_buf.front()); // ??
             measurements.emplace_back(img_msg, IMUs);
         }
 
@@ -178,6 +179,8 @@ int main(int argc, char** argv)
 
     ros::Subscriber sub_imu = nh.subscribe(node.imu_topic, 2000, &Node::ImuCallback, &node,
         ros::TransportHints().tcpNoDelay());
+
+    Viewer::Instance().RisgisterPub(nh);
 
     ROS_INFO_STREAM("ICE-BA Node is ready.");
 

@@ -3,8 +3,7 @@ Panels:
     Help Height: 0
     Name: Displays
     Property Tree Widget:
-      Expanded:
-        - /VIO1
+      Expanded: ~
       Splitter Ratio: 0.465115994
     Tree Height: 311
   - Class: rviz/Selection
@@ -86,7 +85,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Image
       Enabled: true
-      Image Topic: /feature_tracker/feature_img
+      Image Topic: /ice_ba_player/feature_img
       Max Value: 1
       Median window: 5
       Min Value: 0
@@ -130,13 +129,21 @@ Visualization Manager:
           Radius: 0.0299999993
           Shaft Diameter: 0.100000001
           Shaft Length: 0.100000001
-          Topic: /vins_estimator/path
+          Topic: /ice_ba_player/path
           Unreliable: false
           Value: true
         - Class: rviz/MarkerArray
           Enabled: true
-          Marker Topic: /vins_estimator/camera_pose_visual
+          Marker Topic: /ice_ba_player/camera_pose_visual
           Name: camera_visual
+          Namespaces:
+            {}
+          Queue Size: 100
+          Value: true
+        - Class: rviz/Marker
+          Enabled: true
+          Marker Topic: /ice_ba_player/kf_poses
+          Name: kf_poses
           Namespaces:
             {}
           Queue Size: 100
@@ -215,7 +222,7 @@ Visualization Manager:
             {}
           Update Interval: 0
           Value: true
-      Enabled: false
+      Enabled: true
       Name: VIO
     - Class: rviz/Group
       Displays:
@@ -464,25 +471,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 20.9684067
+      Distance: 17.5064659
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -2.7069304
-        Y: -1.26974416
-        Z: 2.1410624e-05
+        X: 0.435242951
+        Y: -0.637992859
+        Z: 2.33179726e-05
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 1.0797962
+      Pitch: 0.519795239
       Target Frame: <Fixed Frame>
       Value: XYOrbit (rviz)
-      Yaw: 3.08722663
+      Yaw: 4.86723852
     Saved: ~
 Window Geometry:
   Displays:

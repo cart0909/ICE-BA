@@ -1,6 +1,7 @@
 #include "System.h"
 #include <ros/ros.h>
 #include <opencv2/core/eigen.hpp>
+#include "Viewer.h"
 
 System::System()
 {
@@ -75,8 +76,11 @@ void System::ReadConfigYaml(const std::string& filename)
     mpDuoCalibParam->Imu.accel_bias = Eigen::Vector3f::Zero();
     mpDuoCalibParam->Imu.gyro_TK = Eigen::Matrix3f::Identity();
     mpDuoCalibParam->Imu.gyro_bias = Eigen::Vector3f::Zero();
-    mpDuoCalibParam->Imu.accel_noise_var = Eigen::Vector3f{0.0016,0.0016,0.0016};
-    mpDuoCalibParam->Imu.angv_noise_var = Eigen::Vector3f{0.0001,0.0001,0.0001};
+    float acc_n, gyr_n;
+    acc_n = fs["acc_n"];
+    gyr_n = fs["gyr_n"];
+    mpDuoCalibParam->Imu.accel_noise_var = Eigen::Vector3f{acc_n, acc_n, acc_n}; // 0.0016
+    mpDuoCalibParam->Imu.angv_noise_var = Eigen::Vector3f{gyr_n, gyr_n, gyr_n}; // 0.0001
     mpDuoCalibParam->Imu.D_T_I = Tdi;
     mpDuoCalibParam->device_id = "ASL";
     mpDuoCalibParam->sensor_type = XP::DuoCalibParam::SensorType::UNKNOWN;
@@ -104,13 +108,13 @@ void System::ReadConfigYaml(const std::string& filename)
 void System::TrackStereoVIO(const cv::Mat& img_left, const cv::Mat& img_right,
     float timestamp, const std::vector<XP::ImuData>& imu_data)
 {
-    SPtr<Frame> curr_frame = std::make_shared<Frame>();
+    mpCurrentFrame = std::make_shared<Frame>();
     cv::Mat img_smooth, right_img_smooth;
     cv::blur(img_left, img_smooth, cv::Size(3, 3));
     cv::blur(img_right, right_img_smooth, cv::Size(3, 3));
 
     if(mState == SYSTEM_INIT) {
-        mpFeatureTracking->Detect(img_smooth, curr_frame);
+        mpFeatureTracking->Detect(img_smooth, mpCurrentFrame);
         mState = SYSTEM_TRACK;
     }
     else if(mState == SYSTEM_TRACK) {
@@ -118,28 +122,20 @@ void System::TrackStereoVIO(const cv::Mat& img_left, const cv::Mat& img_right,
             mpFeatureTracking->OpticalFlowAndDetectWithIMU(
                         img_smooth,
                         imu_data,
-                        curr_frame);
+                        mpCurrentFrame);
         }
         else {
             mpFeatureTracking->OpticalFlowAndDetect(
                         img_smooth,
-                        curr_frame);
+                        mpCurrentFrame);
         }
     }
     else {
         ROS_ERROR_STREAM("not implemented.");
     }
 
-    mpFeatureTracking->StereoMatching(right_img_smooth, img_smooth, curr_frame);
-    mpLocalBA->PushCurrentFrame(curr_frame, timestamp, imu_data);
+    mpFeatureTracking->StereoMatching(right_img_smooth, img_smooth, mpCurrentFrame);
+    mpLocalBA->PushCurrentFrame(mpCurrentFrame, timestamp, imu_data);
 
-    cv::Mat result;
-    cv::cvtColor(img_right, result, CV_GRAY2BGR);
-
-    for(auto& it : curr_frame->mvKeysRight) {
-        cv::circle(result, it.pt,5, cv::Scalar(0,255,0),-1);
-    }
-
-    cv::imshow("result", result);
-    cv::waitKey(1);
+    Viewer::Instance().PubFeautreTracking(img_left, mpCurrentFrame->mvKeys);
 }

@@ -10,6 +10,7 @@
 #include "xp_quaternion.h"
 #include "FeatureTracking.h"
 #include "LocalBA.h"
+#include "Frame.h"
 #include <opencv2/opencv.hpp>
 #include <string>
 #include <vector>
@@ -29,7 +30,6 @@ public:
     void ReadConfigYaml(const std::string& filename);
     void TrackStereoVIO(const cv::Mat& img_left, const cv::Mat& img_right,
         float timestamp, const std::vector<XP::ImuData>& imu_data);
-
 private:
     SystemState mState = SYSTEM_INIT;
     SPtr<XP::DuoCalibParam> mpDuoCalibParam;
@@ -38,4 +38,6 @@ private:
 
     SPtr<FeatureTracking> mpFeatureTracking;
     SPtr<LocalBA> mpLocalBA;
+
+    SPtr<Frame> mpCurrentFrame;
 };

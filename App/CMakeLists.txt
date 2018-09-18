@@ -93,6 +93,8 @@ src/Frame.cpp
 src/FeatureTracking.cpp
 src/Config.cpp
 src/LocalBA.cpp
+src/Viewer.cpp
+src/CameraPoseVisualization.cpp
 )
 
 target_link_libraries(ice_ba_player

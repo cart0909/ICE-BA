@@ -1,6 +1,8 @@
 #include <ros/ros.h>
+#include <Eigen/Dense>
 #include "LocalBA.h"
 #include "iba_helper.h"
+#include "Viewer.h"
 
 // helper function
 template <typename T>
@@ -115,7 +117,38 @@ LocalBA::LocalBA(const SPtr<XP::DuoCalibParam>& pDuoCalibParam)
                    IBA_DEBUG_NONE,
                    IBA_HISTORY_LBA | IBA_HISTORY_GBA);
 
-//    mSolver.set
+    mSolver.SetCallbackLBA([&](const int iFrm, const float ts) {
+        IBA::SlidingWindow sliding_window;
+        mSolver.GetSlidingWindow(&sliding_window);
+        const IBA::CameraIMUState& X = sliding_window.CsLF.back();
+        const IBA::CameraPose& C = X.C;
+        Eigen::Matrix4f W_vio_T_S = Eigen::Matrix4f::Identity();  // W_vio_T_S
+        for (int i = 0; i < 3; ++i) {
+          W_vio_T_S(i, 3) = C.p[i];
+          for (int j = 0; j < 3; ++j) {
+            W_vio_T_S(i, j) = C.R[j][i];  // C.R is actually R_SW
+          }
+        }
+
+        Eigen::Vector3f speed;
+        for(int i = 0; i < 3; ++i)
+            speed(i) = X.v[i];
+
+        Viewer::Instance().PubOdometry(W_vio_T_S, speed);
+#ifdef DRAW_KEYFRAME_POSE
+        std::vector<Eigen::Vector3f, Eigen::aligned_allocator<Eigen::Vector3f>> vec_p;
+        for(int i = 0, n = sliding_window.CsKF.size(); i < n - 1; ++i) {
+            Eigen::Vector3f p;
+            p(0) = sliding_window.CsKF[i].p[0];
+            p(1) = sliding_window.CsKF[i].p[1];
+            p(2) = sliding_window.CsKF[i].p[2];
+            vec_p.emplace_back(p);
+        }
+
+        if(!vec_p.empty())
+            Viewer::Instance().PubKeyFramePose(vec_p);
+#endif
+    });
     mSolver.Start();
     mtLocalBA = std::thread(&LocalBA::Run, this);
 }
