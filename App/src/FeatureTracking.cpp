@@ -2,6 +2,7 @@
 #include <ros/ros.h>
 #include <xp_quaternion.h>
 #include <opencv2/core/eigen.hpp>
+#include "tracer.h"
 
 FeatureTracking::FeatureTracking(const SPtr<XP::DuoCalibParam>& pDuoCalibParam,
                                  const SPtr<std::vector<cv::Mat_<uchar>>>& pMasks)
@@ -107,4 +108,34 @@ void FeatureTracking::StereoMatching(const cv::Mat& right_img_smooth, const cv::
                     const SPtr<Frame>& curr_frame) {
     mpImgFeatPropagator->PropagateFeatures(right_img_smooth, img_smooth, curr_frame->mvKeys,
                                            Tlr, &(curr_frame->mvKeysRight), &(curr_frame->mOrbFeatRight));
+#ifdef DEBUG_STEREO_MATCHING
+    auto L_begin = curr_frame->mvKeys.begin();
+    auto L_it = curr_frame->mvKeys.begin();
+    auto L_end = curr_frame->mvKeys.end();
+    auto R_begin = curr_frame->mvKeysRight.begin();
+    auto R_it = curr_frame->mvKeysRight.begin();
+    auto R_end = curr_frame->mvKeysRight.end();
+
+    std::vector<cv::DMatch> matches1to2;
+    for(; R_it != R_end && L_it != L_end;) {
+        if(R_it->class_id == L_it->class_id) {
+            cv::DMatch dmatch;
+            ++R_it;
+            ++L_it;
+            dmatch.queryIdx = L_it - L_begin - 1;
+            dmatch.trainIdx = R_it - R_begin - 1;
+            matches1to2.emplace_back(dmatch);
+        }
+        else {
+            ++L_it;
+        }
+    }
+
+    cv::Mat result;
+    cv::drawMatches(img_smooth, curr_frame->mvKeys, right_img_smooth, curr_frame->mvKeysRight, matches1to2, result);
+    cv::imshow("SM", result);
+    cv::waitKey(1);
+
+    ROS_INFO_STREAM("SM: " << curr_frame->mvKeysRight.size() << "/" << curr_frame->mvKeys.size());
+#endif
 }

@@ -110,6 +110,7 @@ public:
             lock.unlock();
 
             for(auto& meas : measurements) {
+                Tracer::TraceBegin("convert");
                 auto& img_msg = meas.first.first;
                 auto& img_msg_right = meas.first.second;
                 double timestamp = img_msg->header.stamp.toSec();
@@ -139,6 +140,7 @@ public:
                     imu_data.emplace_back(temp_imu);
                 }
 
+                Tracer::TraceEnd();
                 mSystem.TrackStereoVIO(img_left, img_right, timestamp - mdImageFirstEnqueueTimeStamp, imu_data);
             }
         }

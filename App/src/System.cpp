@@ -2,6 +2,7 @@
 #include <ros/ros.h>
 #include <opencv2/core/eigen.hpp>
 #include "Viewer.h"
+#include "tracer.h"
 
 System::System()
 {
@@ -114,17 +115,20 @@ void System::TrackStereoVIO(const cv::Mat& img_left, const cv::Mat& img_right,
     cv::blur(img_right, right_img_smooth, cv::Size(3, 3));
 
     if(mState == SYSTEM_INIT) {
+        ScopedTrace st("Detect");
         mpFeatureTracking->Detect(img_smooth, mpCurrentFrame);
         mState = SYSTEM_TRACK;
     }
     else if(mState == SYSTEM_TRACK) {
         if(imu_data.size() > 1) {
+            ScopedTrace st("LKI_Detect");
             mpFeatureTracking->OpticalFlowAndDetectWithIMU(
                         img_smooth,
                         imu_data,
                         mpCurrentFrame);
         }
         else {
+            ScopedTrace st("LK_Detect");
             mpFeatureTracking->OpticalFlowAndDetect(
                         img_smooth,
                         mpCurrentFrame);
@@ -134,8 +138,13 @@ void System::TrackStereoVIO(const cv::Mat& img_left, const cv::Mat& img_right,
         ROS_ERROR_STREAM("not implemented.");
     }
 
+    Tracer::TraceBegin("SM");
     mpFeatureTracking->StereoMatching(right_img_smooth, img_smooth, mpCurrentFrame);
+    Tracer::TraceEnd();
+
     mpLocalBA->PushCurrentFrame(mpCurrentFrame, timestamp, imu_data);
 
+    Tracer::TraceBegin("showFTImg");
     Viewer::Instance().PubFeautreTracking(img_left, mpCurrentFrame->mvKeys);
+    Tracer::TraceEnd();
 }

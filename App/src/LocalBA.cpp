@@ -3,6 +3,7 @@
 #include "LocalBA.h"
 #include "iba_helper.h"
 #include "Viewer.h"
+#include "tracer.h"
 
 // helper function
 template <typename T>
@@ -118,6 +119,7 @@ LocalBA::LocalBA(const SPtr<XP::DuoCalibParam>& pDuoCalibParam)
                    IBA_HISTORY_LBA | IBA_HISTORY_GBA);
 
     mSolver.SetCallbackLBA([&](const int iFrm, const float ts) {
+        ScopedTrace st("ShowPose");
         IBA::SlidingWindow sliding_window;
         mSolver.GetSlidingWindow(&sliding_window);
         const IBA::CameraIMUState& X = sliding_window.CsLF.back();
@@ -168,6 +170,7 @@ void LocalBA::Run() {
         lock.unlock();
 
         for(auto& meas : measurements) {
+            ScopedTrace st("BA");
             auto& CF = meas.first;
             auto& KF = meas.second;
             mSolver.PushCurrentFrame(CF, KF.iFrm == -1 ? nullptr : &KF);
