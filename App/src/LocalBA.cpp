@@ -65,9 +65,10 @@ bool create_iba_frame(const std::vector<cv::KeyPoint>& kps_l,
     bool need_new_kf = std::distance(kp_it_l, kps_l.end()) >= 20 || CF.zs.size() < 20;
     if (std::distance(kp_it_l, kps_l.end()) == 0)
       need_new_kf = false;
-    if (!need_new_kf) KF.iFrm = -1;
-    else
-      ROS_INFO_STREAM("new keyframe " << CF.iFrm);
+    if (!need_new_kf)
+        KF.iFrm = -1;
+//    else
+//      ROS_INFO_STREAM("new keyframe " << CF.iFrm);
 
     if (!need_new_kf) {
       KF.iFrm = -1;
